@@ -2,19 +2,17 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MysteryNFT is ERC721, Ownable {
-    uint256 private currentId;
+contract MysteryNFT is ERC721 {
+    uint256 private _tokenIds;
 
-    constructor() 
-        ERC721("LuckyNFT", "LNFT") 
-        Ownable(msg.sender) 
-    {}
+    constructor() ERC721("MysteryNFT", "MNFT") {}
 
-    function mintNFT(address to) external onlyOwner returns (uint256) {
-        currentId++;
-        _mint(to, currentId);
-        return currentId;
+    // ai cũng có thể mint
+    function mintNFT(address to) public returns (uint256) {
+        _tokenIds += 1;
+        uint256 newId = _tokenIds;
+        _mint(to, newId);
+        return newId;
     }
 }

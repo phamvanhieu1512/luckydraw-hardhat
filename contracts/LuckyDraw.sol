@@ -9,7 +9,6 @@ contract LuckyDraw {
     MysteryNFT public nft;
 
     uint256 public boxPrice = 0.1 ether;
-    address public owner;
 
     struct SpinInfo {
         string rewardType;
@@ -19,7 +18,7 @@ contract LuckyDraw {
     }
 
     mapping(address => SpinInfo[]) public userSpins;
-    address[] public allUsers; // danh sách người chơi
+    address[] public allUsers;
 
     event SpinResult(
         address indexed user,
@@ -29,18 +28,12 @@ contract LuckyDraw {
         uint256 timestamp
     );
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "not owner");
-        _;
-    }
-
     constructor(address tokenAddr, address nftAddr) {
         token = RewardToken(tokenAddr);
         nft = MysteryNFT(nftAddr);
-        owner = msg.sender;
     }
 
-    function setPrice(uint256 newPrice) external onlyOwner {
+    function setPrice(uint256 newPrice) public {
         boxPrice = newPrice;
     }
 
@@ -49,9 +42,8 @@ contract LuckyDraw {
     }
 
     function spin() public payable {
-        require(msg.value == boxPrice, "invalid price");
+        require(msg.value >= boxPrice, "insufficient payment");
 
-        // Lưu user nếu lần đầu spin
         if (userSpins[msg.sender].length == 0) {
             allUsers.push(msg.sender);
         }
@@ -67,12 +59,10 @@ contract LuckyDraw {
             )
         ) % 100;
 
-        if (random < 30) {
-            // 30% none
+        if (random < 40) {
             emit SpinResult(msg.sender, "none", 0, 0, block.timestamp);
             userSpins[msg.sender].push(SpinInfo("none", 0, 0, block.timestamp));
-        } else if (random < 80) {
-            // 50% token (30–79)
+        } else if (random < 70) {
             uint256 amount = 5 * 1e18;
             token.mint(msg.sender, amount);
             emit SpinResult(msg.sender, "token", amount, 0, block.timestamp);
@@ -80,7 +70,6 @@ contract LuckyDraw {
                 SpinInfo("token", amount, 0, block.timestamp)
             );
         } else {
-            // 20% NFT (80–99)
             uint256 nftId = nft.mintNFT(msg.sender);
             emit SpinResult(msg.sender, "nft", 0, nftId, block.timestamp);
             userSpins[msg.sender].push(
@@ -95,7 +84,6 @@ contract LuckyDraw {
         return userSpins[user];
     }
 
-    // Hàm mới: lấy toàn bộ lịch sử spin
     function getAllSpins()
         public
         view
@@ -108,7 +96,7 @@ contract LuckyDraw {
         return (allUsers, spins);
     }
 
-    function withdraw() external onlyOwner {
-        payable(owner).transfer(address(this).balance);
+    function withdraw() public {
+        payable(msg.sender).transfer(address(this).balance);
     }
 }

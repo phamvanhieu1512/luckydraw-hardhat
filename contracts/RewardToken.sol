@@ -2,12 +2,12 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract RewardToken is ERC20, Ownable {
-    constructor() ERC20("Lucky Token", "LTK") Ownable(msg.sender) {}
+contract RewardToken is ERC20 {
+    constructor() ERC20("RewardToken", "RWT") {}
 
-    function mint(address to, uint256 amount) external onlyOwner {
+    // ai cũng có thể mint
+    function mint(address to, uint256 amount) public {
         _mint(to, amount);
     }
 }
